@@ -1,0 +1,66 @@
+[
+  {
+    "id": "1",
+    "date": "2024-01-15",
+    "description": "Grocery Shopping",
+    "amount": -75.50,
+    "category": "Food",
+    "type": "expense"
+  },
+  {
+    "id": "2",
+    "date": "2024-01-20",
+    "description": "Salary",
+    "amount": 3000.00,
+    "category": "Income",
+    "type": "income"
+  },
+  {
+    "id": "3",
+    "date": "2024-01-22",
+    "description": "Electric Bill",
+    "amount": -120.00,
+    "category": "Utilities",
+    "type": "expense"
+  },
+  {
+    "id": "4",
+    "date": "2024-01-25",
+    "description": "Restaurant Dinner",
+    "amount": -45.80,
+    "category": "Food",
+    "type": "expense"
+  },
+  {
+    "id": "5",
+    "date": "2024-01-28",
+    "description": "Freelance Project",
+    "amount": 500.00,
+    "category": "Income",
+    "type": "income"
+  },
+  {
+    "id": "6",
+    "date": "2024-02-01",
+    "description": "Gym Membership",
+    "amount": -50.00,
+    "category": "Health",
+    "type": "expense"
+  },
+  {
+    "id": "7",
+    "date": "2024-02-05",
+    "description": "Gas Station",
+    "amount": -60.00,
+    "category": "Transportation",
+    "type": "expense"
+  },
+  {
+    "id": "8",
+    "date": "2024-02-10",
+    "description": "Online Course",
+    "amount": -99.99,
+    "category": "Education",
+    "type": "expense"
+  }
+]
