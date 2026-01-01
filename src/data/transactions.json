@@ -6,6 +6,8 @@
     "amount": -75.50,
     "category_id": "6",
     "category_name": "Food",
+    "account_id": "1",
+    "account_name": "Cash",
     "type": "expense"
   },
   {
@@ -15,6 +17,8 @@
     "amount": 3000.00,
     "category_id": "1",
     "category_name": "Salary",
+    "account_id": "2",
+    "account_name": "Bank Account",
     "type": "income"
   },
   {
@@ -24,6 +28,8 @@
     "amount": -120.00,
     "category_id": "8",
     "category_name": "Utilities",
+    "account_id": "2",
+    "account_name": "Bank Account",
     "type": "expense"
   },
   {
@@ -33,6 +39,8 @@
     "amount": -45.80,
     "category_id": "6",
     "category_name": "Food",
+    "account_id": "3",
+    "account_name": "Credit Card",
     "type": "expense"
   },
   {
@@ -42,6 +50,8 @@
     "amount": 500.00,
     "category_id": "2",
     "category_name": "Freelance",
+    "account_id": "2",
+    "account_name": "Bank Account",
     "type": "income"
   },
   {
@@ -51,6 +61,8 @@
     "amount": -50.00,
     "category_id": "9",
     "category_name": "Health",
+    "account_id": "3",
+    "account_name": "Credit Card",
     "type": "expense"
   },
   {
@@ -60,6 +72,8 @@
     "amount": -60.00,
     "category_id": "7",
     "category_name": "Transportation",
+    "account_id": "1",
+    "account_name": "Cash",
     "type": "expense"
   },
   {
@@ -69,6 +83,8 @@
     "amount": -99.99,
     "category_id": "10",
     "category_name": "Education",
+    "account_id": "5",
+    "account_name": "Digital Wallet",
     "type": "expense"
   }
 ]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "name": "Cash"
+  },
+  {
+    "id": "2",
+    "name": "Bank Account"
+  },
+  {
+    "id": "3",
+    "name": "Credit Card"
+  },
+  {
+    "id": "4",
+    "name": "Savings Account"
+  },
+  {
+    "id": "5",
+    "name": "Digital Wallet"
+  },
+  {
+    "id": "6",
+    "name": "Investment Account"
+  }
+]

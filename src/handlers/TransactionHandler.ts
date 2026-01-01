@@ -11,13 +11,13 @@ export class TransactionHandler {
   }
 
   private validateTransactionInput(data: any): { valid: boolean; error?: string } {
-    const { date, description, amount, category_id, type } = data;
+    const { date, description, amount, category_id, account_id, type } = data;
 
     // Validate required fields
-    if (!date || !description || amount === undefined || !category_id || !type) {
+    if (!date || !description || amount === undefined || !category_id || !account_id || !type) {
       return {
         valid: false,
-        error: 'Missing required fields: date, description, amount, category_id, and type are required'
+        error: 'Missing required fields: date, description, amount, category_id, account_id, and type are required'
       };
     }
 
@@ -111,7 +111,7 @@ export class TransactionHandler {
       res.status(201).json(response);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create transaction';
-      const statusCode = errorMessage === 'Category not found' ? 404 : 500;
+      const statusCode = (errorMessage === 'Category not found' || errorMessage === 'Account not found') ? 404 : 500;
 
       res.status(statusCode).json({
         success: false,
@@ -150,7 +150,7 @@ export class TransactionHandler {
       res.json(response);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update transaction';
-      const statusCode = errorMessage === 'Category not found' ? 404 : 500;
+      const statusCode = (errorMessage === 'Category not found' || errorMessage === 'Account not found') ? 404 : 500;
 
       res.status(statusCode).json({
         success: false,

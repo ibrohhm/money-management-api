@@ -1,14 +1,17 @@
 import { Transaction } from '../models/Transaction';
 import { CategoryRepository } from '../repositories/CategoryRepository';
+import { AccountRepository } from '../repositories/AccountRepository';
 import { TransactionRepository } from '../repositories/TransactionRepository';
 
 export class TransactionService {
   private transactionRepo: TransactionRepository;
   private categoryRepo: CategoryRepository;
+  private accountRepo: AccountRepository;
 
   constructor() {
     this.transactionRepo = new TransactionRepository();
     this.categoryRepo = new CategoryRepository();
+    this.accountRepo = new AccountRepository();
   }
 
   async getAllTransactions(): Promise<Transaction[]> {
@@ -25,7 +28,13 @@ export class TransactionService {
       throw new Error('Category not found');
     }
 
-    transaction.category_name = category.name
+    const account = await this.accountRepo.findById(transaction.account_id);
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    transaction.category_name = category.name;
+    transaction.account_name = account.name;
     return await this.transactionRepo.create(transaction);
   }
 
@@ -37,6 +46,15 @@ export class TransactionService {
       }
 
       transaction.category_name = category.name;
+    }
+
+    if (transaction.account_id) {
+      const account = await this.accountRepo.findById(transaction.account_id);
+      if (!account) {
+        throw new Error('Account not found');
+      }
+
+      transaction.account_name = account.name;
     }
 
     return await this.transactionRepo.update(id, transaction);

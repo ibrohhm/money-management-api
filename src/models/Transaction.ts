@@ -5,6 +5,8 @@ export interface Transaction {
   amount: number;
   category_id: string;
   category_name: string;
+  account_id: string;
+  account_name: string;
   type: TransactionType;
 }
 
