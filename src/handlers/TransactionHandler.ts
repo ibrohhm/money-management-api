@@ -10,6 +10,45 @@ export class TransactionHandler {
     this.service = new TransactionService();
   }
 
+  private validateTransactionInput(data: any): { valid: boolean; error?: string } {
+    const { date, description, amount, category_id, type } = data;
+
+    // Validate required fields
+    if (!date || !description || amount === undefined || !category_id || !type) {
+      return {
+        valid: false,
+        error: 'Missing required fields: date, description, amount, category_id, and type are required'
+      };
+    }
+
+    // Validate type
+    if (type !== 'income' && type !== 'expense') {
+      return {
+        valid: false,
+        error: 'Invalid type. Must be either "income" or "expense"'
+      };
+    }
+
+    // Validate amount is a number
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      return {
+        valid: false,
+        error: 'Amount must be a valid number'
+      };
+    }
+
+    // Validate date format (basic ISO date check)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      return {
+        valid: false,
+        error: 'Invalid date format. Expected YYYY-MM-DD'
+      };
+    }
+
+    return { valid: true };
+  }
+
   getAllTransactions = async (req: Request, res: Response): Promise<void> => {
     try {
       const transactions = await this.service.getAllTransactions();
@@ -55,6 +94,15 @@ export class TransactionHandler {
 
   createTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
+      const validation = this.validateTransactionInput(req.body);
+      if (!validation.valid) {
+        res.status(422).json({
+          success: false,
+          message: validation.error
+        });
+        return;
+      }
+
       const transaction = await this.service.createTransaction(req.body);
       const response: ApiResponse<Transaction> = {
         success: true,
@@ -62,9 +110,12 @@ export class TransactionHandler {
       };
       res.status(201).json(response);
     } catch (error) {
-      res.status(500).json({
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create transaction';
+      const statusCode = errorMessage === 'Category not found' ? 404 : 500;
+
+      res.status(statusCode).json({
         success: false,
-        message: 'Failed to create transaction'
+        message: errorMessage
       });
     }
   };
@@ -72,6 +123,16 @@ export class TransactionHandler {
   updateTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
+
+      const validation = this.validateTransactionInput(req.body);
+      if (!validation.valid) {
+        res.status(422).json({
+          success: false,
+          message: validation.error
+        });
+        return;
+      }
+
       const transaction = await this.service.updateTransaction(id, req.body);
 
       if (!transaction) {
@@ -88,9 +149,12 @@ export class TransactionHandler {
       };
       res.json(response);
     } catch (error) {
-      res.status(500).json({
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update transaction';
+      const statusCode = errorMessage === 'Category not found' ? 404 : 500;
+
+      res.status(statusCode).json({
         success: false,
-        message: 'Failed to update transaction'
+        message: errorMessage
       });
     }
   };

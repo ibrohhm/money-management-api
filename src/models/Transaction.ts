@@ -3,8 +3,9 @@ export interface Transaction {
   date: string;
   description: string;
   amount: number;
-  category: string;
-  type: 'income' | 'expense';
+  category_id: string;
+  category_name: string;
+  type: TransactionType;
 }
 
 export type TransactionType = 'income' | 'expense';

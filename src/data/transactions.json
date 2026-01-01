@@ -4,7 +4,8 @@
     "date": "2024-01-15",
     "description": "Grocery Shopping",
     "amount": -75.50,
-    "category": "Food",
+    "category_id": "6",
+    "category_name": "Food",
     "type": "expense"
   },
   {
@@ -12,7 +13,8 @@
     "date": "2024-01-20",
     "description": "Salary",
     "amount": 3000.00,
-    "category": "Income",
+    "category_id": "1",
+    "category_name": "Salary",
     "type": "income"
   },
   {
@@ -20,7 +22,8 @@
     "date": "2024-01-22",
     "description": "Electric Bill",
     "amount": -120.00,
-    "category": "Utilities",
+    "category_id": "8",
+    "category_name": "Utilities",
     "type": "expense"
   },
   {
@@ -28,7 +31,8 @@
     "date": "2024-01-25",
     "description": "Restaurant Dinner",
     "amount": -45.80,
-    "category": "Food",
+    "category_id": "6",
+    "category_name": "Food",
     "type": "expense"
   },
   {
@@ -36,7 +40,8 @@
     "date": "2024-01-28",
     "description": "Freelance Project",
     "amount": 500.00,
-    "category": "Income",
+    "category_id": "2",
+    "category_name": "Freelance",
     "type": "income"
   },
   {
@@ -44,7 +49,8 @@
     "date": "2024-02-01",
     "description": "Gym Membership",
     "amount": -50.00,
-    "category": "Health",
+    "category_id": "9",
+    "category_name": "Health",
     "type": "expense"
   },
   {
@@ -52,7 +58,8 @@
     "date": "2024-02-05",
     "description": "Gas Station",
     "amount": -60.00,
-    "category": "Transportation",
+    "category_id": "7",
+    "category_name": "Transportation",
     "type": "expense"
   },
   {
@@ -60,7 +67,8 @@
     "date": "2024-02-10",
     "description": "Online Course",
     "amount": -99.99,
-    "category": "Education",
+    "category_id": "10",
+    "category_name": "Education",
     "type": "expense"
   }
 ]

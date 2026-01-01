@@ -15,8 +15,8 @@ export class TransactionRepository {
 
   async create(transaction: Omit<Transaction, 'id'>): Promise<Transaction> {
     const newTransaction: Transaction = {
-      ...transaction,
-      id: String(this.transactions.length + 1)
+      id: String(this.transactions.length + 1),
+      ...transaction
     };
     this.transactions.push(newTransaction);
     return newTransaction;
