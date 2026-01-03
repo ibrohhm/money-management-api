@@ -10,4 +10,8 @@ export interface Transaction {
   type: TransactionType;
 }
 
+export interface TransactionResponse extends Transaction {
+  currency: string;
+}
+
 export type TransactionType = 'income' | 'expense';

@@ -1,13 +1,20 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/TransactionService';
 import { ApiResponse } from '../types/response';
-import { Transaction } from '../models/Transaction';
+import { Transaction, TransactionResponse } from '../models/Transaction';
 
 export class TransactionHandler {
   private service: TransactionService;
 
   constructor() {
     this.service = new TransactionService();
+  }
+
+  private mapToResponse(transaction: Transaction): TransactionResponse {
+    return {
+      ...transaction,
+      currency: 'Rp'
+    };
   }
 
   private validateTransactionInput(data: any): { valid: boolean; error?: string } {
@@ -52,10 +59,11 @@ export class TransactionHandler {
   getAllTransactions = async (req: Request, res: Response): Promise<void> => {
     try {
       const transactions = await this.service.getAllTransactions();
-      const response: ApiResponse<Transaction[]> = {
+      const transactionsResponse = transactions.map(t => this.mapToResponse(t));
+      const response: ApiResponse<TransactionResponse[]> = {
         success: true,
-        data: transactions,
-        count: transactions.length
+        data: transactionsResponse,
+        count: transactionsResponse.length
       };
       res.json(response);
     } catch (error) {
@@ -79,9 +87,9 @@ export class TransactionHandler {
         return;
       }
 
-      const response: ApiResponse<Transaction> = {
+      const response: ApiResponse<TransactionResponse> = {
         success: true,
-        data: transaction
+        data: this.mapToResponse(transaction)
       };
       res.json(response);
     } catch (error) {
@@ -104,9 +112,9 @@ export class TransactionHandler {
       }
 
       const transaction = await this.service.createTransaction(req.body);
-      const response: ApiResponse<Transaction> = {
+      const response: ApiResponse<TransactionResponse> = {
         success: true,
-        data: transaction
+        data: this.mapToResponse(transaction)
       };
       res.status(201).json(response);
     } catch (error) {
@@ -143,9 +151,9 @@ export class TransactionHandler {
         return;
       }
 
-      const response: ApiResponse<Transaction> = {
+      const response: ApiResponse<TransactionResponse> = {
         success: true,
-        data: transaction
+        data: this.mapToResponse(transaction)
       };
       res.json(response);
     } catch (error) {
