@@ -1,4 +1,4 @@
-import { Transaction } from '../models/Transaction';
+import { Transaction, TransactionResponse, TransactionGroup } from '../models/Transaction';
 import { CategoryRepository } from '../repositories/CategoryRepository';
 import { AccountRepository } from '../repositories/AccountRepository';
 import { TransactionRepository } from '../repositories/TransactionRepository';
@@ -72,5 +72,48 @@ export class TransactionService {
   async getTotalByType(type: 'income' | 'expense'): Promise<number> {
     const transactions = await this.getTransactionsByType(type);
     return transactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  }
+
+  groupTransactionsByDate(transactions: Transaction[]): TransactionGroup[] {
+    const groupMap = new Map<string, Transaction[]>();
+    transactions.forEach(transaction => {
+      const dateOnly = transaction.date.split('T')[0];
+      if (!groupMap.has(dateOnly)) {
+        groupMap.set(dateOnly, []);
+      }
+
+      groupMap.get(dateOnly)!.push(transaction);
+    });
+
+    const groups: TransactionGroup[] = [];
+    groupMap.forEach((transactions, date) => {
+      const total_income = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const total_expense = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+      const net_total = total_income - total_expense;
+
+      groups.push({
+        date,
+        total_income,
+        total_expense,
+        net_total,
+        transaction_count: transactions.length,
+        transactions: transactions.map(t => this.mapToResponse(t))
+      });
+    });
+
+    return groups.sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  private mapToResponse(transaction: Transaction): TransactionResponse {
+    return {
+      ...transaction,
+      currency: 'Rp'
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/TransactionService';
 import { ApiResponse } from '../types/response';
-import { Transaction, TransactionResponse } from '../models/Transaction';
+import { Transaction, TransactionResponse, TransactionGroup } from '../models/Transaction';
 
 export class TransactionHandler {
   private service: TransactionService;
@@ -44,12 +44,12 @@ export class TransactionHandler {
       };
     }
 
-    // Validate date format (basic ISO date check)
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    // Validate date format (ISO date with optional time)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?$/;
     if (!dateRegex.test(date)) {
       return {
         valid: false,
-        error: 'Invalid date format. Expected YYYY-MM-DD'
+        error: 'Invalid date format. Expected YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS'
       };
     }
 
@@ -59,11 +59,10 @@ export class TransactionHandler {
   getAllTransactions = async (req: Request, res: Response): Promise<void> => {
     try {
       const transactions = await this.service.getAllTransactions();
-      const transactionsResponse = transactions.map(t => this.mapToResponse(t));
-      const response: ApiResponse<TransactionResponse[]> = {
+      const transactionGroup = this.service.groupTransactionsByDate(transactions);
+      const response: ApiResponse<TransactionGroup[]> = {
         success: true,
-        data: transactionsResponse,
-        count: transactionsResponse.length
+        data: transactionGroup,
       };
       res.json(response);
     } catch (error) {
