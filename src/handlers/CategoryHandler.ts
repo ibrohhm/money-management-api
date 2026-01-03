@@ -34,7 +34,18 @@ export class CategoryHandler {
 
   getAllCategories = async (req: Request, res: Response): Promise<void> => {
     try {
-      const categories = await this.service.getAllCategories();
+      const { type } = req.query;
+
+      // Validate type parameter if provided
+      if (type && type !== 'income' && type !== 'expense') {
+        res.status(422).json({
+          success: false,
+          message: 'Invalid type parameter. Must be either "income" or "expense"'
+        });
+        return;
+      }
+
+      const categories = await this.service.getAllCategories(type);
       const response: ApiResponse<Category[]> = {
         success: true,
         data: categories,

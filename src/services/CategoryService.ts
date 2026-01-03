@@ -8,8 +8,8 @@ export class CategoryService {
     this.repository = new CategoryRepository();
   }
 
-  async getAllCategories(): Promise<Category[]> {
-    return await this.repository.findAll();
+  async getAllCategories(type?: string): Promise<Category[]> {
+    return await this.repository.findAll(type);
   }
 
   async getCategoryById(id: string): Promise<Category | null> {

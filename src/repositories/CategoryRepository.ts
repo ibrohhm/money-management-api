@@ -4,8 +4,11 @@ import { Category } from '../models/Category'
 export class CategoryRepository {
   private categories: Category[] = categoriesData as Category[];
 
-  async findAll(): Promise<Category[]> {
-    return this.categories
+  async findAll(type?: string): Promise<Category[]> {
+    const categories = this.categories;
+    if (!type) return categories
+    
+    return this.categories.filter(t => t.type === type);
   }
 
   async findById(id: string): Promise<Category | null> {
