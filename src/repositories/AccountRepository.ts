@@ -1,40 +1,67 @@
-import accountsData from '../data/accounts.json'
-import { Account } from '../models/Account'
+import { ResultSetHeader, RowDataPacket } from 'mysql2';
+import pool from '../database/connection';
+import { Account } from '../models/Account';
+
+interface AccountRow extends RowDataPacket, Account {}
 
 export class AccountRepository {
-  private accounts: Account[] = accountsData as Account[];
-
-  async findAll(): Promise<Account[]> {
-    return this.accounts
+  async findAll(userId: number): Promise<Account[]> {
+    const [rows] = await pool.query<AccountRow[]>(
+      'SELECT * FROM accounts WHERE user_id = ?',
+      [userId]
+    );
+    return rows;
   }
 
-  async findById(id: string): Promise<Account | null> {
-    const account = this.accounts.find(t => t.id === id);
-    return account || null;
+  async findById(id: number, userId: number): Promise<Account | null> {
+    const [rows] = await pool.query<AccountRow[]>(
+      'SELECT * FROM accounts WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+    return rows[0] || null;
   }
 
-  async create(account: Omit<Account, 'id'>): Promise<Account> {
-    const newAccount: Account = {
-      id: String(this.accounts.length + 1),
-      ...account
+  async create(data: Account): Promise<Account> {
+    const now = new Date();
+    const [result] = await pool.query<ResultSetHeader>(
+      'INSERT INTO accounts (name, account_group_id, user_id) VALUES (?, ?, ?)',
+      [data.name, data.account_group_id, data.user_id]
+    );
+
+    return {
+      id: result.insertId,
+      name: data.name,
+      account_group_id: data.account_group_id,
+      user_id: data.user_id,
+      created_at: now,
+      updated_at: now
     };
-    this.accounts.push(newAccount);
-    return newAccount;
   }
 
-  async update(id: string, account: Partial<Account>): Promise<Account | null> {
-    const index = this.accounts.findIndex(t => t.id === id);
-    if (index === -1) return null;
+  async update(id: number, data: Account): Promise<Account | null> {
+    const now = new Date();
+    const [result] = await pool.query<ResultSetHeader>(
+      'UPDATE accounts SET name = ?, account_group_id = ? WHERE id = ? AND user_id = ?',
+      [data.name, data.account_group_id, id, data.user_id]
+    );
 
-    this.accounts[index] = { ...this.accounts[index], ...account };
-    return this.accounts[index];
+    if (result.affectedRows === 0) return null;
+
+    return {
+      id,
+      name: data.name,
+      account_group_id: data.account_group_id,
+      user_id: data.user_id,
+      created_at: data.created_at,
+      updated_at: now
+    };
   }
 
-  async delete(id: string): Promise<boolean> {
-    const index = this.accounts.findIndex(t => t.id === id);
-    if (index === -1) return false;
-
-    this.accounts.splice(index, 1);
-    return true;
+  async delete(id: number, userId: number): Promise<boolean> {
+    const [result] = await pool.query<ResultSetHeader>(
+      'DELETE FROM accounts WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+    return result.affectedRows > 0;
   }
 }

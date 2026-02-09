@@ -8,23 +8,23 @@ export class AccountService {
     this.repository = new AccountRepository();
   }
 
-  async getAllAccounts(): Promise<Account[]> {
-    return await this.repository.findAll();
+  async getAllAccounts(userId: number): Promise<Account[]> {
+    return await this.repository.findAll(userId);
   }
 
-  async getAccountById(id: string): Promise<Account | null> {
-    return await this.repository.findById(id);
+  async getAccountById(id: number, userId: number): Promise<Account | null> {
+    return await this.repository.findById(id, userId);
   }
 
   async createAccount(account: Omit<Account, 'id'>): Promise<Account> {
     return await this.repository.create(account);
   }
 
-  async updateAccount(id: string, account: Partial<Account>): Promise<Account | null> {
+  async updateAccount(id: number, account: Account): Promise<Account | null> {
     return await this.repository.update(id, account)
   }
 
-  async deleteAccount(id: string): Promise<boolean> {
-    return await this.repository.delete(id)
+  async deleteAccount(id: number, userId: number): Promise<boolean> {
+    return await this.repository.delete(id, userId)
   }
 }

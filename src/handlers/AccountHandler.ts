@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AccountService } from '../services/AccountService';
 import { ApiResponse } from '../types/response';
 import { Account } from '../models/Account';
+import { DEFAULT_USER_ID } from '../models/User';
 
 export class AccountHandler {
   private service: AccountService;
@@ -11,13 +12,19 @@ export class AccountHandler {
   }
 
   private validateAccountInput(data: any): { valid: boolean; error?: string } {
-    const { name } = data;
+    const { name, account_group_id } = data;
 
-    // Validate required fields
     if (!name) {
       return {
         valid: false,
         error: 'Missing required field: name is required'
+      };
+    }
+
+    if (!account_group_id) {
+      return {
+        valid: false,
+        error: 'Missing required field: account_group_id is required'
       };
     }
 
@@ -26,7 +33,7 @@ export class AccountHandler {
 
   getAllAccounts = async (req: Request, res: Response): Promise<void> => {
     try {
-      const accounts = await this.service.getAllAccounts();
+      const accounts = await this.service.getAllAccounts(DEFAULT_USER_ID);
       const response: ApiResponse<Account[]> = {
         success: true,
         data: accounts,
@@ -34,17 +41,19 @@ export class AccountHandler {
       };
       res.json(response);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch accounts';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch accounts'
+        message: errorMessage
       });
     }
   };
 
   getAccountById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const account = await this.service.getAccountById(id);
+      const id = Number(req.params.id);
+      const account = await this.service.getAccountById(id, DEFAULT_USER_ID);
 
       if (!account) {
         res.status(404).json({
@@ -60,9 +69,11 @@ export class AccountHandler {
       };
       res.json(response);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch account';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch account'
+        message: errorMessage
       });
     }
   };
@@ -78,7 +89,12 @@ export class AccountHandler {
         return;
       }
 
-      const account = await this.service.createAccount(req.body);
+      const accountData: Omit<Account, 'id'> = {
+        ...req.body,
+        user_id: DEFAULT_USER_ID
+      };
+
+      const account = await this.service.createAccount(accountData);
       const response: ApiResponse<Account> = {
         success: true,
         data: account
@@ -96,7 +112,7 @@ export class AccountHandler {
 
   updateAccount = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = Number(req.params.id);
 
       const validation = this.validateAccountInput(req.body);
       if (!validation.valid) {
@@ -107,7 +123,13 @@ export class AccountHandler {
         return;
       }
 
-      const account = await this.service.updateAccount(id, req.body);
+      const accountData: Account = {
+        ...req.body,
+        id,
+        user_id: DEFAULT_USER_ID
+      };
+
+      const account = await this.service.updateAccount(id, accountData);
 
       if (!account) {
         res.status(404).json({
@@ -134,8 +156,8 @@ export class AccountHandler {
 
   deleteAccount = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const deleted = await this.service.deleteAccount(id);
+      const id = Number(req.params.id);
+      const deleted = await this.service.deleteAccount(id, DEFAULT_USER_ID);
 
       if (!deleted) {
         res.status(404).json({
@@ -150,9 +172,11 @@ export class AccountHandler {
         message: 'Account deleted successfully'
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete account';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to delete account'
+        message: errorMessage
       });
     }
   };
