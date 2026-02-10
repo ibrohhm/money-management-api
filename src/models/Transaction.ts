@@ -1,13 +1,14 @@
 export interface Transaction {
-  id: string;
-  date: string;
+  id?: number;
+  transaction_at: Date;
   description: string;
   amount: number;
-  category_id: string;
-  category_name: string;
-  account_id: string;
-  account_name: string;
-  type: TransactionType;
+  user_id: number;
+  category_id: number;
+  account_id: number;
+  transaction_type: number;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export interface TransactionResponse extends Transaction {
@@ -23,4 +24,12 @@ export interface TransactionGroup {
   transactions: TransactionResponse[];
 }
 
-export type TransactionType = 'income' | 'expense';
+export const TRANSACTION_TYPES: Record<string, number> = {
+  income: 1,
+  expense: 2,
+};
+
+export const TRANSACTION_TYPE_LABELA: Record<number, string> = {
+  1: 'income',
+  2: 'expense',
+};

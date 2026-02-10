@@ -1,4 +1,4 @@
-import { Transaction, TransactionResponse, TransactionGroup } from '../models/Transaction';
+import { Transaction, TransactionResponse, TransactionGroup, TRANSACTION_TYPES } from '../models/Transaction';
 import { CategoryRepository } from '../repositories/CategoryRepository';
 import { AccountRepository } from '../repositories/AccountRepository';
 import { TransactionRepository } from '../repositories/TransactionRepository';
@@ -14,70 +14,50 @@ export class TransactionService {
     this.accountRepo = new AccountRepository();
   }
 
-  async getAllTransactions(): Promise<Transaction[]> {
-    return await this.transactionRepo.findAll();
+  async getAllTransactions(userId: number): Promise<Transaction[]> {
+    return await this.transactionRepo.findAll(userId);
   }
 
-  async getTransactionById(id: string): Promise<Transaction | null> {
-    return await this.transactionRepo.findById(id);
+  async getTransactionById(id: number, userId: number): Promise<Transaction | null> {
+    return await this.transactionRepo.findById(id, userId);
   }
 
   async createTransaction(transaction: Omit<Transaction, 'id'>): Promise<Transaction> {
-    const category = await this.categoryRepo.findById(transaction.category_id);
+    const category = await this.categoryRepo.findById(transaction.category_id, transaction.user_id);
     if (!category) {
       throw new Error('Category not found');
     }
 
-    const account = await this.accountRepo.findById(transaction.account_id);
+    const account = await this.accountRepo.findById(transaction.account_id, transaction.user_id);
     if (!account) {
       throw new Error('Account not found');
     }
 
-    transaction.category_name = category.name;
-    transaction.account_name = account.name;
     return await this.transactionRepo.create(transaction);
   }
 
-  async updateTransaction(id: string, transaction: Partial<Transaction>): Promise<Transaction | null> {
-    if (transaction.category_id) {
-      const category = await this.categoryRepo.findById(transaction.category_id);
-      if (!category) {
-        throw new Error('Category not found');
-      }
-
-      transaction.category_name = category.name;
+  async updateTransaction(id: number, transaction: Transaction): Promise<Transaction | null> {
+    const category = await this.categoryRepo.findById(transaction.category_id, transaction.user_id);
+    if (!category) {
+      throw new Error('Category not found');
     }
 
-    if (transaction.account_id) {
-      const account = await this.accountRepo.findById(transaction.account_id);
-      if (!account) {
-        throw new Error('Account not found');
-      }
-
-      transaction.account_name = account.name;
+    const account = await this.accountRepo.findById(transaction.account_id, transaction.user_id);
+    if (!account) {
+      throw new Error('Account not found');
     }
 
     return await this.transactionRepo.update(id, transaction);
   }
 
-  async deleteTransaction(id: string): Promise<boolean> {
-    return await this.transactionRepo.delete(id);
-  }
-
-  async getTransactionsByType(type: 'income' | 'expense'): Promise<Transaction[]> {
-    const allTransactions = await this.transactionRepo.findAll();
-    return allTransactions.filter(t => t.type === type);
-  }
-
-  async getTotalByType(type: 'income' | 'expense'): Promise<number> {
-    const transactions = await this.getTransactionsByType(type);
-    return transactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  async deleteTransaction(id: number, userId: number): Promise<boolean> {
+    return await this.transactionRepo.delete(id, userId);
   }
 
   groupTransactionsByDate(transactions: Transaction[]): TransactionGroup[] {
     const groupMap = new Map<string, Transaction[]>();
     transactions.forEach(transaction => {
-      const dateOnly = transaction.date.split('T')[0];
+      const dateOnly = new Date(transaction.transaction_at).toISOString().split('T')[0];
       if (!groupMap.has(dateOnly)) {
         groupMap.set(dateOnly, []);
       }
@@ -88,11 +68,11 @@ export class TransactionService {
     const groups: TransactionGroup[] = [];
     groupMap.forEach((transactions, date) => {
       const total_income = transactions
-        .filter(t => t.type === 'income')
+        .filter(t => t.transaction_type === TRANSACTION_TYPES.income)
         .reduce((sum, t) => sum + t.amount, 0);
 
       const total_expense = transactions
-        .filter(t => t.type === 'expense')
+        .filter(t => t.transaction_type === TRANSACTION_TYPES.expense)
         .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
       const net_total = total_income - total_expense;

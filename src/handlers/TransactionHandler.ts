@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/TransactionService';
 import { ApiResponse } from '../types/response';
-import { Transaction, TransactionResponse, TransactionGroup } from '../models/Transaction';
+import { Transaction, TransactionResponse, TRANSACTION_TYPES } from '../models/Transaction';
+import { DEFAULT_USER_ID } from '../models/User';
 
 export class TransactionHandler {
   private service: TransactionService;
@@ -18,25 +19,22 @@ export class TransactionHandler {
   }
 
   private validateTransactionInput(data: any): { valid: boolean; error?: string } {
-    const { date, description, amount, category_id, account_id, type } = data;
+    const { transaction_at, description, amount, category_id, account_id, transaction_type } = data;
 
-    // Validate required fields
-    if (!date || !description || amount === undefined || !category_id || !account_id || !type) {
+    if (!transaction_at || !description || amount === undefined || !category_id || !account_id || !transaction_type) {
       return {
         valid: false,
-        error: 'Missing required fields: date, description, amount, category_id, account_id, and type are required'
+        error: 'Missing required fields: transaction_at, description, amount, category_id, account_id, and transaction_type are required'
       };
     }
 
-    // Validate type
-    if (type !== 'income' && type !== 'expense') {
+    if (transaction_type !== 'income' && transaction_type !== 'expense') {
       return {
         valid: false,
-        error: 'Invalid type. Must be either "income" or "expense"'
+        error: 'Invalid transaction_type. Must be either "income" or "expense"'
       };
     }
 
-    // Validate amount is a number
     if (typeof amount !== 'number' || isNaN(amount)) {
       return {
         valid: false,
@@ -44,12 +42,11 @@ export class TransactionHandler {
       };
     }
 
-    // Validate date format (ISO date with optional time)
     const dateRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?$/;
-    if (!dateRegex.test(date)) {
+    if (!dateRegex.test(transaction_at)) {
       return {
         valid: false,
-        error: 'Invalid date format. Expected YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS'
+        error: 'Invalid date format. Expected YYYY-MM-DDTHH:MM:SS'
       };
     }
 
@@ -58,25 +55,26 @@ export class TransactionHandler {
 
   getAllTransactions = async (req: Request, res: Response): Promise<void> => {
     try {
-      const transactions = await this.service.getAllTransactions();
-      const transactionGroup = this.service.groupTransactionsByDate(transactions);
-      const response: ApiResponse<TransactionGroup[]> = {
+      const transactions = await this.service.getAllTransactions(DEFAULT_USER_ID);
+      const response: ApiResponse<Transaction[]> = {
         success: true,
-        data: transactionGroup,
+        data: transactions,
       };
       res.json(response);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch transactions';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch transactions'
+        message: errorMessage
       });
     }
   };
 
   getTransactionById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const transaction = await this.service.getTransactionById(id);
+      const id = Number(req.params.id);
+      const transaction = await this.service.getTransactionById(id, DEFAULT_USER_ID);
 
       if (!transaction) {
         res.status(404).json({
@@ -92,9 +90,11 @@ export class TransactionHandler {
       };
       res.json(response);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch transaction';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch transaction'
+        message: errorMessage
       });
     }
   };
@@ -110,7 +110,17 @@ export class TransactionHandler {
         return;
       }
 
-      const transaction = await this.service.createTransaction(req.body);
+      const { transaction_at, description, amount, category_id, account_id, transaction_type } = req.body;
+      const transaction = await this.service.createTransaction({
+        transaction_at,
+        description,
+        amount,
+        user_id: DEFAULT_USER_ID,
+        category_id,
+        account_id,
+        transaction_type: TRANSACTION_TYPES[transaction_type]
+      });
+
       const response: ApiResponse<TransactionResponse> = {
         success: true,
         data: this.mapToResponse(transaction)
@@ -129,7 +139,7 @@ export class TransactionHandler {
 
   updateTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = Number(req.params.id);
 
       const validation = this.validateTransactionInput(req.body);
       if (!validation.valid) {
@@ -140,7 +150,16 @@ export class TransactionHandler {
         return;
       }
 
-      const transaction = await this.service.updateTransaction(id, req.body);
+      const { transaction_at, description, amount, category_id, account_id, transaction_type } = req.body;
+      const transaction = await this.service.updateTransaction(id, {
+        transaction_at,
+        description,
+        amount,
+        user_id: DEFAULT_USER_ID,
+        category_id,
+        account_id,
+        transaction_type: TRANSACTION_TYPES[transaction_type]
+      });
 
       if (!transaction) {
         res.status(404).json({
@@ -168,8 +187,8 @@ export class TransactionHandler {
 
   deleteTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const deleted = await this.service.deleteTransaction(id);
+      const id = Number(req.params.id);
+      const deleted = await this.service.deleteTransaction(id, DEFAULT_USER_ID);
 
       if (!deleted) {
         res.status(404).json({
@@ -184,9 +203,11 @@ export class TransactionHandler {
         message: 'Transaction deleted successfully'
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete transaction';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to delete transaction'
+        message: errorMessage
       });
     }
   };
