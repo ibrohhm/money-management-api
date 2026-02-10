@@ -1,43 +1,77 @@
-import categoriesData from '../data/categories.json'
-import { Category } from '../models/Category'
+import { ResultSetHeader, RowDataPacket } from 'mysql2';
+import pool from '../database/connection';
+import { Category } from '../models/Category';
+
+interface CategoryRow extends RowDataPacket, Category {}
 
 export class CategoryRepository {
-  private categories: Category[] = categoriesData as Category[];
+  async findAll(userId: number, categoryType?: number): Promise<Category[]> {
+    if (categoryType) {
+      const [rows] = await pool.query<CategoryRow[]>(
+        'SELECT * FROM categories WHERE user_id = ? AND category_type = ?',
+        [userId, categoryType]
+      );
+      return rows;
+    }
 
-  async findAll(type?: string): Promise<Category[]> {
-    const categories = this.categories;
-    if (!type) return categories
-    
-    return this.categories.filter(t => t.type === type);
+    const [rows] = await pool.query<CategoryRow[]>(
+      'SELECT * FROM categories WHERE user_id = ?',
+      [userId]
+    );
+    return rows;
   }
 
-  async findById(id: string): Promise<Category | null> {
-    const category = this.categories.find(t => t.id === id);
-    return category || null;
+  async findById(id: number, userId: number): Promise<Category | null> {
+    const [rows] = await pool.query<CategoryRow[]>(
+      'SELECT * FROM categories WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+    return rows[0] || null;
   }
 
-  async create(category: Omit<Category, 'id'>): Promise<Category> {
-    const newCategory: Category = {
-      id: String(this.categories.length + 1),
-      ...category
+  async create(data: Category): Promise<Category> {
+    const now = new Date();
+    const [result] = await pool.query<ResultSetHeader>(
+      'INSERT INTO categories (name, category_type, parent_id, user_id) VALUES (?, ?, ?, ?)',
+      [data.name, data.category_type, data.parent_id || null, data.user_id]
+    );
+
+    return {
+      id: result.insertId,
+      name: data.name,
+      category_type: data.category_type,
+      parent_id: data.parent_id || null,
+      user_id: data.user_id,
+      created_at: now,
+      updated_at: now
     };
-    this.categories.push(newCategory);
-    return newCategory;
   }
 
-  async update(id: string, category: Partial<Category>): Promise<Category | null> {
-    const index = this.categories.findIndex(t => t.id === id);
-    if (index === -1) return null;
+  async update(id: number, data: Category): Promise<Category | null> {
+    const now = new Date();
+    const [result] = await pool.query<ResultSetHeader>(
+      'UPDATE categories SET name = ?, category_type = ?, parent_id = ? WHERE id = ? AND user_id = ?',
+      [data.name, data.category_type, data.parent_id || null, id, data.user_id]
+    );
 
-    this.categories[index] = { ...this.categories[index], ...category };
-    return this.categories[index];
+    if (result.affectedRows === 0) return null;
+
+    return {
+      id,
+      name: data.name,
+      category_type: data.category_type,
+      parent_id: data.parent_id || null,
+      user_id: data.user_id,
+      created_at: data.created_at,
+      updated_at: now
+    };
   }
 
-  async delete(id: string): Promise<boolean> {
-    const index = this.categories.findIndex(t => t.id === id);
-    if (index === -1) return false;
-
-    this.categories.splice(index, 1);
-    return true;
+  async delete(id: number, userId: number): Promise<boolean> {
+    const [result] = await pool.query<ResultSetHeader>(
+      'DELETE FROM categories WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+    return result.affectedRows > 0;
   }
 }

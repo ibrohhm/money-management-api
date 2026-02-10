@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { CategoryService } from '../services/CategoryService';
 import { ApiResponse } from '../types/response';
-import { Category } from '../models/Category';
+import { Category, CATEGORY_TYPES } from '../models/Category';
+import { DEFAULT_USER_ID } from '../models/User';
 
 export class CategoryHandler {
   private service: CategoryService;
@@ -13,7 +14,6 @@ export class CategoryHandler {
   private validateCategoryInput(data: any): { valid: boolean; error?: string } {
     const { name, type } = data;
 
-    // Validate required fields
     if (!name || !type) {
       return {
         valid: false,
@@ -21,7 +21,6 @@ export class CategoryHandler {
       };
     }
 
-    // Validate type
     if (type !== 'income' && type !== 'expense') {
       return {
         valid: false,
@@ -36,7 +35,6 @@ export class CategoryHandler {
     try {
       const { type } = req.query;
 
-      // Validate type parameter if provided
       if (type && type !== 'income' && type !== 'expense') {
         res.status(422).json({
           success: false,
@@ -45,7 +43,8 @@ export class CategoryHandler {
         return;
       }
 
-      const categories = await this.service.getAllCategories(type);
+      const typeFilter = type ? String(type) : undefined;
+      const categories = await this.service.getAllCategories(DEFAULT_USER_ID, typeFilter);
       const response: ApiResponse<Category[]> = {
         success: true,
         data: categories,
@@ -53,17 +52,19 @@ export class CategoryHandler {
       };
       res.json(response);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch categories';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch categories'
+        message: errorMessage
       });
     }
   };
 
   getCategoryById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const category = await this.service.getCategoryById(id);
+      const id = Number(req.params.id);
+      const category = await this.service.getCategoryById(id, DEFAULT_USER_ID);
 
       if (!category) {
         res.status(404).json({
@@ -79,9 +80,11 @@ export class CategoryHandler {
       };
       res.json(response);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch category';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch category'
+        message: errorMessage
       });
     }
   };
@@ -97,7 +100,14 @@ export class CategoryHandler {
         return;
       }
 
-      const category = await this.service.createCategory(req.body);
+      const { name, type, parent_id } = req.body;
+      const category = await this.service.createCategory({
+        name,
+        category_type: CATEGORY_TYPES[type],
+        parent_id: parent_id || null,
+        user_id: DEFAULT_USER_ID
+      });
+
       const response: ApiResponse<Category> = {
         success: true,
         data: category
@@ -115,7 +125,7 @@ export class CategoryHandler {
 
   updateCategory = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = Number(req.params.id);
 
       const validation = this.validateCategoryInput(req.body);
       if (!validation.valid) {
@@ -126,7 +136,13 @@ export class CategoryHandler {
         return;
       }
 
-      const category = await this.service.updateCategory(id, req.body);
+      const { name, type, parent_id } = req.body;
+      const category = await this.service.updateCategory(id, {
+        name,
+        category_type: CATEGORY_TYPES[type],
+        parent_id: parent_id || null,
+        user_id: DEFAULT_USER_ID
+      });
 
       if (!category) {
         res.status(404).json({
@@ -153,8 +169,8 @@ export class CategoryHandler {
 
   deleteCategory = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const deleted = await this.service.deleteCategory(id);
+      const id = Number(req.params.id);
+      const deleted = await this.service.deleteCategory(id, DEFAULT_USER_ID);
 
       if (!deleted) {
         res.status(404).json({
@@ -169,9 +185,11 @@ export class CategoryHandler {
         message: 'Category deleted successfully'
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete category';
+
       res.status(500).json({
         success: false,
-        message: 'Failed to delete category'
+        message: errorMessage
       });
     }
   };

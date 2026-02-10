@@ -1,4 +1,4 @@
-import { Category  } from "../models/Category";
+import { Category, CATEGORY_TYPES } from "../models/Category";
 import { CategoryRepository } from "../repositories/CategoryRepository";
 
 export class CategoryService {
@@ -8,23 +8,24 @@ export class CategoryService {
     this.repository = new CategoryRepository();
   }
 
-  async getAllCategories(type?: string): Promise<Category[]> {
-    return await this.repository.findAll(type);
+  async getAllCategories(userId: number, type?: string): Promise<Category[]> {
+    const categoryType = type ? CATEGORY_TYPES[type] : undefined;
+    return await this.repository.findAll(userId, categoryType);
   }
 
-  async getCategoryById(id: string): Promise<Category | null> {
-    return await this.repository.findById(id);
+  async getCategoryById(id: number, userId: number): Promise<Category | null> {
+    return await this.repository.findById(id, userId);
   }
 
   async createCategory(category: Omit<Category, 'id'>): Promise<Category> {
     return await this.repository.create(category);
   }
 
-  async updateCategory(id: string, category: Partial<Category>): Promise<Category | null> {
-    return await this.repository.update(id, category)
+  async updateCategory(id: number, category: Category): Promise<Category | null> {
+    return await this.repository.update(id, category);
   }
 
-  async deleteCategory(id: string): Promise<boolean> {
-    return await this.repository.delete(id)
+  async deleteCategory(id: number, userId: number): Promise<boolean> {
+    return await this.repository.delete(id, userId);
   }
 }
