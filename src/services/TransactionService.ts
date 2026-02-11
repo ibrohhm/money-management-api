@@ -1,4 +1,4 @@
-import { Transaction, TransactionResponse, TransactionGroup, TRANSACTION_TYPES } from '../models/Transaction';
+import { Transaction, TransactionResponse, TransactionGroup, TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS } from '../models/Transaction';
 import { CategoryRepository } from '../repositories/CategoryRepository';
 import { AccountRepository } from '../repositories/AccountRepository';
 import { TransactionRepository } from '../repositories/TransactionRepository';
@@ -93,7 +93,8 @@ export class TransactionService {
   private mapToResponse(transaction: Transaction): TransactionResponse {
     return {
       ...transaction,
-      currency: 'Rp'
+      currency: 'Rp',
+      transaction_type: TRANSACTION_TYPE_LABELS[transaction.transaction_type]
     };
   }
 }

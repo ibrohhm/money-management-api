@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/TransactionService';
 import { ApiResponse } from '../types/response';
-import { Transaction, TransactionResponse, TRANSACTION_TYPES } from '../models/Transaction';
+import { Transaction, TransactionResponse, TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS, TransactionGroup } from '../models/Transaction';
 import { DEFAULT_USER_ID } from '../models/User';
 
 export class TransactionHandler {
@@ -14,7 +14,8 @@ export class TransactionHandler {
   private mapToResponse(transaction: Transaction): TransactionResponse {
     return {
       ...transaction,
-      currency: 'Rp'
+      currency: 'Rp',
+      transaction_type: TRANSACTION_TYPE_LABELS[transaction.transaction_type]
     };
   }
 
@@ -52,6 +53,25 @@ export class TransactionHandler {
 
     return { valid: true };
   }
+
+  getAllTransactionGroups = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const transactions = await this.service.getAllTransactions(DEFAULT_USER_ID);
+      const transactionGroups = this.service.groupTransactionsByDate(transactions)
+      const response: ApiResponse<TransactionGroup[]> = {
+        success: true,
+        data: transactionGroups,
+      };
+      res.json(response);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch transactions';
+
+      res.status(500).json({
+        success: false,
+        message: errorMessage
+      });
+    }
+  };
 
   getAllTransactions = async (req: Request, res: Response): Promise<void> => {
     try {

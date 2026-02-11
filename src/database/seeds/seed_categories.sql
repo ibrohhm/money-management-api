@@ -1,0 +1,16 @@
+INSERT INTO categories (name, category_type, parent_id, user_id) VALUES
+('Salary', 1, NULL, 1),
+('Freelance', 1, NULL, 1),
+('Investment', 1, NULL, 1),
+('Bonus', 1, NULL, 1),
+('Other Income', 1, NULL, 1),
+('Food', 2, NULL, 1),
+('Transportation', 2, NULL, 1),
+('Utilities', 2, NULL, 1),
+('Health', 2, NULL, 1),
+('Education', 2, NULL, 1),
+('Entertainment', 2, NULL, 1),
+('Shopping', 2, NULL, 1),
+('Housing', 2, NULL, 1),
+('Insurance', 2, NULL, 1),
+('Other Expense', 2, NULL, 1);

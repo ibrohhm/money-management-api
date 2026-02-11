@@ -11,8 +11,9 @@ export interface Transaction {
   updated_at?: Date;
 }
 
-export interface TransactionResponse extends Transaction {
+export interface TransactionResponse extends Omit<Transaction, 'transaction_type'> {
   currency: string;
+  transaction_type: string;
 }
 
 export interface TransactionGroup {
@@ -29,7 +30,7 @@ export const TRANSACTION_TYPES: Record<string, number> = {
   expense: 2,
 };
 
-export const TRANSACTION_TYPE_LABELA: Record<number, string> = {
+export const TRANSACTION_TYPE_LABELS: Record<number, string> = {
   1: 'income',
   2: 'expense',
 };
