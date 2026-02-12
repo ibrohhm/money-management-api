@@ -11,9 +11,22 @@ export interface Transaction {
   updated_at?: Date;
 }
 
-export interface TransactionResponse extends Omit<Transaction, 'transaction_type'> {
+export interface TransactionCategory {
+  id: number;
+  name: string;
+  type: string;
+}
+
+export interface TransactionAccount {
+  id: number;
+  name: string;
+}
+
+export interface TransactionResponse extends Omit<Transaction, 'transaction_type' | 'category_id' | 'account_id'> {
   currency: string;
   transaction_type: string;
+  category: TransactionCategory;
+  account: TransactionAccount;
 }
 
 export interface TransactionGroup {

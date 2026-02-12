@@ -21,6 +21,14 @@ export class AccountRepository {
     return rows[0] || null;
   }
 
+  async findByIds(ids: number[], userId: number): Promise<Account[]> {
+    const [rows] = await pool.query<AccountRow[]>(
+      'SELECT * FROM accounts WHERE id IN (?) AND user_id = ?',
+      [ids, userId]
+    );
+    return rows;
+  }
+
   async create(data: Account): Promise<Account> {
     const now = new Date();
     const [result] = await pool.query<ResultSetHeader>(

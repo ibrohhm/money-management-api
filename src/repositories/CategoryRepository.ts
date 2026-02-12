@@ -29,6 +29,14 @@ export class CategoryRepository {
     return rows[0] || null;
   }
 
+  async findByIds(ids: number[], userId: number): Promise<Category[]> {
+    const [rows] = await pool.query<CategoryRow[]>(
+      'SELECT * FROM categories WHERE id IN (?) AND user_id = ?',
+      [ids, userId]
+    );
+    return rows;
+  }
+
   async create(data: Category): Promise<Category> {
     const now = new Date();
     const [result] = await pool.query<ResultSetHeader>(

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/TransactionService';
 import { ApiResponse } from '../types/response';
-import { Transaction, TransactionResponse, TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS, TransactionGroup } from '../models/Transaction';
+import { TransactionResponse, TRANSACTION_TYPES, TransactionGroup } from '../models/Transaction';
 import { DEFAULT_USER_ID } from '../models/User';
 
 export class TransactionHandler {
@@ -9,14 +9,6 @@ export class TransactionHandler {
 
   constructor() {
     this.service = new TransactionService();
-  }
-
-  private mapToResponse(transaction: Transaction): TransactionResponse {
-    return {
-      ...transaction,
-      currency: 'Rp',
-      transaction_type: TRANSACTION_TYPE_LABELS[transaction.transaction_type]
-    };
   }
 
   private validateTransactionInput(data: any): { valid: boolean; error?: string } {
@@ -76,7 +68,7 @@ export class TransactionHandler {
   getAllTransactions = async (req: Request, res: Response): Promise<void> => {
     try {
       const transactions = await this.service.getAllTransactions(DEFAULT_USER_ID);
-      const response: ApiResponse<Transaction[]> = {
+      const response: ApiResponse<TransactionResponse[]> = {
         success: true,
         data: transactions,
       };
@@ -106,7 +98,7 @@ export class TransactionHandler {
 
       const response: ApiResponse<TransactionResponse> = {
         success: true,
-        data: this.mapToResponse(transaction)
+        data: transaction
       };
       res.json(response);
     } catch (error) {
@@ -143,7 +135,7 @@ export class TransactionHandler {
 
       const response: ApiResponse<TransactionResponse> = {
         success: true,
-        data: this.mapToResponse(transaction)
+        data: transaction
       };
       res.status(201).json(response);
     } catch (error) {
@@ -191,7 +183,7 @@ export class TransactionHandler {
 
       const response: ApiResponse<TransactionResponse> = {
         success: true,
-        data: this.mapToResponse(transaction)
+        data: transaction
       };
       res.json(response);
     } catch (error) {
